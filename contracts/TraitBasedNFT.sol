@@ -1,4 +1,4 @@
-//0x6Ce95F6ad2451213c35909d4B651034D4Dc71f41
+//0xf3CA24a0193d64857E1faBD1b49845bB265a2f22
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
@@ -17,11 +17,11 @@ contract TraitBasedNFT is ERC721, Ownable {
 
     mapping(uint256 => EnumerableSet.UintSet) private traitToTokenIds;
     mapping(uint256 => bool) public mintedTokens;
-    uint256[] private availableTokenIds;
-    uint256[] private traitList;
+    uint256[] public availableTokenIds;
+    uint256[] public traitList;
     mapping(address => uint256) public userMintCount;
 
-    string private _baseTokenURI;
+    string public _baseTokenURI;
 
     bool public presaleActive;
     bool public publicSaleActive;
@@ -31,47 +31,56 @@ contract TraitBasedNFT is ERC721, Ownable {
     uint256 public price_3 = 0.02 ether;
     uint256 public price_6 = 0.03 ether;
 
-    string private baseTokenUri;
-    bytes32 private presaleMerkleRoot;
+    string public baseTokenUri;
+    bytes32 public presaleMerkleRoot;
 
-    uint256[] private trait1 = [1,2,99];
+    uint256[] public trait1 = [1, 2, 99];
     // [1,6,14];
     // ,51,75,102,113,135,137,157,195,201,210,213,215,241,244,267,268,278,300,341,355,358,363,379,391,404,430,435,478,517,523,525,548,559,573,584,589,598,618,687,695,714,725,730,765,785,814,825,834,904,940,942,993,1031,1077,1088,1102,1111,1128,1158,1160,1175,1194,1199,1224,1263,1273,1309,1342,1345,1377,1379,1416,1419,1425,1449,1452,1464,1471,1472,1484,1507,1510,1532,1533,1560,1572,1598,1604,1610,1637,1640,1689,1700,1705,1706,1707,1734,1736,1754,1761,1776,1811,1813,1863,1882,1888,1892,1901,1910,1917,1929,1959,2003,2057,2076,2086,2103,2116,2137,2155,2157,2191,2257,2258,2260,2266,2270,2273,2299,2305,2337,2406,2428,2442,2460,2478,2487,2499];
-    uint256[] private trait2 = [4,5,98];
+    uint256[] public trait2 = [4, 5, 98];
+
     // [3,26,33];
     // ,44,72,105,150,253,284,309,320,411,456,568,569,632,633,748,750,773,958,974,989,1002,1005,1009,1039,1054,1114,1125,1156,1162,1186,1220,1267,1307,1362,1420,1463,1481,1537,1579,1611,1670,1728,1751,1792,1841,1852,1869,1873,1899,1987,2013,2080,2132,2162,2171,2177,2184,2193,2199,2213,2226,2246,2392,2397,2466,2476];
 
-    constructor(
-        
-
-    ) ERC721("TraitBasedNFT", "TNFT") {
-        
+    constructor() ERC721("TraitBasedNFT", "TNFT") {
         _baseTokenURI = "https://nftstorage.link/ipfs/bafybeiemwrvmq4mxmzyv5yx5u4thrdmxqvzh2qzccd4o6sm4zitk4qqnfu/";
 
-    uint256[] memory traitCounts = new uint256[](27);
-    traitCounts[0] = trait1.length;
-    traitCounts[1] = trait2.length;
-    // Add more trait counts here...
+        uint256[] memory traitCounts = new uint256[](27);
+        traitCounts[0] = trait1.length;
+        traitCounts[1] = trait2.length;
+        // Add more trait counts here...
 
-    uint256 tokenId = 1;
+        uint256 tokenId = 1;
 
-    for (uint256 i = 0; i < traitCounts.length; i++) {
-        uint256 count = traitCounts[i];
-        uint256 traitNumber = i + 1;
-        
-        for (uint256 j = 0; j < count; j++) {
-            availableTokenIds.push(tokenId);
-            traitToTokenIds[traitNumber].add(tokenId);
-            tokenId++;
+        for (uint256 i = 0; i < traitCounts.length; i++) {
+            uint256 count = traitCounts[i];
+            uint256 traitNumber = i + 1;
+
+            for (uint256 j = 0; j < count; j++) {
+                availableTokenIds.push(tokenId);
+                traitToTokenIds[traitNumber].add(tokenId);
+                tokenId++;
+            }
         }
     }
-}
 
     modifier callerIsUser() {
         if (msg.sender != tx.origin) revert NoContracts();
         _;
     }
-    
+
+    function getTraitTokenCount(uint256 trait) public view returns (uint256) {
+        return traitToTokenIds[trait].length();
+    }
+
+    function getTraitTokenByIndex(uint256 trait, uint256 index)
+        public
+        view
+        returns (uint256)
+    {
+        return traitToTokenIds[trait].at(index);
+    }
+
     function setBaseTokenURI(string memory newBaseTokenURI) public onlyOwner {
         _baseTokenURI = newBaseTokenURI;
     }
@@ -80,14 +89,20 @@ contract TraitBasedNFT is ERC721, Ownable {
         return _baseTokenURI;
     }
 
-    function tokenURI(uint256 _tokenId) override public pure returns (string memory) {
-        return string(
-            abi.encodePacked(
-                "https://nftstorage.link/ipfs/bafybeiemwrvmq4mxmzyv5yx5u4thrdmxqvzh2qzccd4o6sm4zitk4qqnfu/",
-                Strings.toString(_tokenId),
-                ".json"
-            )
-        );
+    function tokenURI(uint256 _tokenId)
+        public
+        pure
+        override
+        returns (string memory)
+    {
+        return
+            string(
+                abi.encodePacked(
+                    "https://nftstorage.link/ipfs/bafybeiemwrvmq4mxmzyv5yx5u4thrdmxqvzh2qzccd4o6sm4zitk4qqnfu/",
+                    Strings.toString(_tokenId),
+                    ".json"
+                )
+            );
     }
 
     function togglePresale() external onlyOwner {
@@ -98,7 +113,10 @@ contract TraitBasedNFT is ERC721, Ownable {
         publicSaleActive = !publicSaleActive;
     }
 
-    function setPresaleMerkleRoot(bytes32 _presaleMerkleRoot) external onlyOwner {
+    function setPresaleMerkleRoot(bytes32 _presaleMerkleRoot)
+        external
+        onlyOwner
+    {
         presaleMerkleRoot = _presaleMerkleRoot;
     }
 
@@ -207,43 +225,43 @@ contract TraitBasedNFT is ERC721, Ownable {
         userMintCount[msg.sender] += 1;
     }
 
-function mintWithTraitPublic(uint256 _trait, uint256 _quantity)
-    external
-    payable
-    callerIsUser
-{
-    require(_quantity > 0 && _quantity <= maxMint, "Invalid quantity");
-    require(
-        traitToTokenIds[_trait].length() >= _quantity,
-        "Not enough tokens with this trait left"
-    );
+    function mintWithTraitPublic(uint256 _trait, uint256 _quantity)
+        external
+        payable
+        callerIsUser
+    {
+        require(_quantity > 0 && _quantity <= maxMint, "Invalid quantity");
+        require(
+            traitToTokenIds[_trait].length() >= _quantity,
+            "Not enough tokens with this trait left"
+        );
 
-    if (!publicSaleActive) revert PublicSaleNotActive();
+        if (!publicSaleActive) revert PublicSaleNotActive();
 
-    uint256 price;
-    if (_quantity == 1) {
-        price = price_1;
-    } else if (_quantity <= 3) {
-        price = price_3;
-    } else {
-        price = price_6;
+        uint256 price;
+        if (_quantity == 1) {
+            price = price_1;
+        } else if (_quantity <= 3) {
+            price = price_3;
+        } else {
+            price = price_6;
+        }
+
+        require(msg.value >= price, "Insufficient ETH");
+
+        for (uint256 i = 0; i < _quantity; i++) {
+            uint256 randomIndex = _random(traitToTokenIds[_trait].length());
+            uint256 tokenId = traitToTokenIds[_trait].at(randomIndex);
+            traitToTokenIds[_trait].remove(tokenId);
+
+            _safeMint(msg.sender, tokenId);
+
+            emit Transfer(address(0), msg.sender, tokenId);
+            mintedTokens[tokenId] = true;
+        }
+
+        userMintCount[msg.sender] += 1;
     }
-
-    require(msg.value >= price, "Insufficient ETH");
-
-    for (uint256 i = 0; i < _quantity; i++) {
-        uint256 randomIndex = _random(traitToTokenIds[_trait].length());
-        uint256 tokenId = traitToTokenIds[_trait].at(randomIndex);
-        traitToTokenIds[_trait].remove(tokenId);
-
-        _safeMint(msg.sender, tokenId);
-
-        emit Transfer(address(0), msg.sender, tokenId);
-        mintedTokens[tokenId] = true;
-    }
-
-    userMintCount[msg.sender] += 1;
-}
 
     function _random(uint256 _limit) private view returns (uint256) {
         return
