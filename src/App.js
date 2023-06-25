@@ -3,7 +3,7 @@ import Web3 from 'web3'
 import TraitBasedNFTABI from './TraitBasedNFT.json'
 
 const contractABI = TraitBasedNFTABI.abi
-const contractAddress = '0xf3CA24a0193d64857E1faBD1b49845bB265a2f22'
+const contractAddress = '0x4a84664c401Aa9bfd7aE3D214983F92c97a55742'
 
 function App() {
   const [web3, setWeb3] = useState(null)
@@ -48,6 +48,8 @@ function App() {
       traitSupply[trait] = supply
     }
     setSupply(traitSupply)
+
+    console.log(traitSupply)
   }
 
   const handlePlusButton = () => {
