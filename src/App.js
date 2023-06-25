@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react'
 import Web3 from 'web3'
 import TraitBasedNFTABI from './TraitBasedNFT.json'
 
-const contractABI = TraitBasedNFTABI.abi // Replace with your contract's ABI
-const contractAddress = '0x6Ce95F6ad2451213c35909d4B651034D4Dc71f41' // Replace with your contract's address
+const contractABI = TraitBasedNFTABI.abi
+const contractAddress = '0xf3CA24a0193d64857E1faBD1b49845bB265a2f22'
 
 function App() {
   const [web3, setWeb3] = useState(null)
@@ -57,14 +57,32 @@ function App() {
   }
 
   const handleMinusButton = () => {
-    if (quantity > 0) {
+    if (quantity > 1) {
       setQuantity(quantity - 1)
     }
   }
 
   const handleMint = async () => {
-    const price = await contract.methods.price_1().call() // Update to your correct price retrieval method
-    const cost = Web3.utils.toWei(price.toString(), 'ether') * quantity
+    let price
+
+    if (quantity === 1) {
+      price = await contract.methods.price_1().call()
+    } else if (quantity === 3) {
+      price = await contract.methods.price_3().call()
+    } else if (quantity === 6) {
+      price = await contract.methods.price_6().call()
+    } else {
+      const pricePerUnit = await contract.methods.price_1().call()
+      price = pricePerUnit * quantity
+    }
+
+    const priceValue = await price
+    console.log(priceValue)
+    console.log(price)
+
+    const cost = Web3.utils.toWei(priceValue.toString(), 'wei')
+    console.log(cost)
+
     await contract.methods
       .mintWithTraitPublic(trait, quantity)
       .send({ from: account, value: cost })
