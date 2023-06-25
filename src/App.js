@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import Web3 from 'web3'
 import TraitBasedNFTABI from './TraitBasedNFT.json'
+import BN from 'bn.js'
 
 const contractABI = TraitBasedNFTABI.abi
 const contractAddress = '0x4E17d4fb585C13AdfbdFD60fCb583cc511DfbB5a'
@@ -48,8 +49,6 @@ function App() {
       traitSupply[trait] = supply
     }
     setSupply(traitSupply)
-
-    console.log(traitSupply)
   }
 
   const handlePlusButton = () => {
@@ -75,13 +74,13 @@ function App() {
       } else if (quantity === 6) {
         price = await contract.methods.price_6().call()
       } else {
-        const pricePerUnit = await contract.methods.price_1().call()
-        price = pricePerUnit * quantity
+        const pricePerUnit = new BN(await contract.methods.price_1().call())
+        const quantityBN = new BN(quantity)
+        price = pricePerUnit.mul(quantityBN)
       }
 
-      const priceValue = await price
-      console.log(priceValue)
-      console.log(price)
+      const priceValue = new BN(await price)
+      console.log(typeof priceValue)
 
       const cost = Web3.utils.toWei(priceValue.toString(), 'wei')
       console.log(cost)
