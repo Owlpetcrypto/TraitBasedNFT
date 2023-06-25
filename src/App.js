@@ -3,7 +3,7 @@ import Web3 from 'web3'
 import TraitBasedNFTABI from './TraitBasedNFT.json'
 
 const contractABI = TraitBasedNFTABI.abi
-const contractAddress = '0x4a84664c401Aa9bfd7aE3D214983F92c97a55742'
+const contractAddress = '0x4E17d4fb585C13AdfbdFD60fCb583cc511DfbB5a'
 
 function App() {
   const [web3, setWeb3] = useState(null)
@@ -65,29 +65,33 @@ function App() {
   }
 
   const handleMint = async () => {
-    let price
+    try {
+      let price
 
-    if (quantity === 1) {
-      price = await contract.methods.price_1().call()
-    } else if (quantity === 3) {
-      price = await contract.methods.price_3().call()
-    } else if (quantity === 6) {
-      price = await contract.methods.price_6().call()
-    } else {
-      const pricePerUnit = await contract.methods.price_1().call()
-      price = pricePerUnit * quantity
+      if (quantity === 1) {
+        price = await contract.methods.price_1().call()
+      } else if (quantity === 3) {
+        price = await contract.methods.price_3().call()
+      } else if (quantity === 6) {
+        price = await contract.methods.price_6().call()
+      } else {
+        const pricePerUnit = await contract.methods.price_1().call()
+        price = pricePerUnit * quantity
+      }
+
+      const priceValue = await price
+      console.log(priceValue)
+      console.log(price)
+
+      const cost = Web3.utils.toWei(priceValue.toString(), 'wei')
+      console.log(cost)
+
+      await contract.methods
+        .mintWithTraitPublic(trait, quantity)
+        .send({ from: account, value: cost })
+    } catch (error) {
+      console.error('Minting failed: ', error)
     }
-
-    const priceValue = await price
-    console.log(priceValue)
-    console.log(price)
-
-    const cost = Web3.utils.toWei(priceValue.toString(), 'wei')
-    console.log(cost)
-
-    await contract.methods
-      .mintWithTraitPublic(trait, quantity)
-      .send({ from: account, value: cost })
   }
 
   return (
